@@ -6,18 +6,25 @@ using namespace std;
 #include <sstream>
 #include <ctime>
 #include <cmath>
+#include <algorithm>
+#include <iterator>
+
 
 class ScientificConfModel
 {
 
 public:
 	ScientificConfModel();
-	bool SaveData(string message);
+	bool SaveData(string message, string path);
+	bool remove_line(string path, int id);
 	void showAllConf(string path);
 	void showAllConfWeek(string path);
 	string GetCurrentDate();
-private:
+	void clear(string path);
 
+private:
+	bool remove_line_from_index(string filename, size_t index);
+	string last_line(string filename);
 };
 
 
@@ -42,7 +49,8 @@ inline void ScientificConfModel::showAllConf(string path)
 
 	while (std::getline(file, line)) {
 
-	
+		tokens.clear();
+
 		istringstream iss(line);
 		string token;
 		while (getline(iss, token, '\t'))
@@ -52,7 +60,7 @@ inline void ScientificConfModel::showAllConf(string path)
 			if (token != "")
 				cout << token << endl;
 
-	
+		cout <<endl<< "******************" << endl;
 	}
 }
 
@@ -142,24 +150,58 @@ inline string ScientificConfModel::GetCurrentDate()
 	return result;
 }
 
+/// <summary>
+/// Очистить файл
+/// </summary>
+inline void ScientificConfModel::clear(string path)
+{
+	//Костыльный способ очистить файл- открыть его с флагом перезаписи
+	//Ох уж этот С++
+	fstream in(path, ios::out);
+	in.close();
+}
+
 
 /// <summary>
 /// Сохранить запись конференции
 /// </summary>
 /// <param name="message">Сообщение для записи</param>
-inline bool ScientificConfModel::SaveData(string message)
+inline bool ScientificConfModel::SaveData(string message,string path)
 {
-	ofstream FileLog;
-	FileLog.open("C:\\MPP_Log\\Data.txt", ios::app);
+	ofstream FileData;
+	string lastLine = last_line(path);
+	vector<string> tokens;
+	
 
-	if (FileLog)
+	//Получаем последнюю ID строки
+		int lastId = -1;
+		istringstream iss(lastLine);
+		string token;
+		tokens.clear();
+		while (getline(iss, token, '\t'))
+			tokens.push_back(token);
+
+		
+		if (!tokens.empty())
+		{
+			lastId = stoi(tokens[0]);
+		}
+			
+	
+
+	FileData.open(path, ios::app);
+
+	if (FileData)
 	{
 		char buffer[80];
 		time_t seconds = time(NULL);
 		tm* timeinfo = localtime(&seconds);
 		const char* format = "%d.%m.%Y %H:%M";
 		strftime(buffer, 80, format, timeinfo);
-		FileLog << "Запись добавленна:" << buffer << "\t"<< message << endl;
+
+
+		FileData << ++lastId << "\t" << "Запись добавленна:" << buffer << message << endl;
+		FileData.close();
 		return true;
 	}
 	else
@@ -167,6 +209,104 @@ inline bool ScientificConfModel::SaveData(string message)
 		//ToDo:Не удалось открыть файл
 		return false;
 	}
+
+
+
+}
+
+//удаление строки по ид
+inline bool ScientificConfModel::remove_line(string path, int id)
+{
+	ifstream file(path);
+	string line;
+	string partial;
+	vector<string> lines;
+	vector<string> tokens;
+
+	lines.clear();
+	
+	//разбиваем на строки
+	for (string a;getline(file, a);)
+	{
+		lines.push_back(a);
+	}
+
+	//разбиваем строки по разделителю
+	for (string l : lines)
+	{
+		istringstream iss(l);
+		string token;
+		tokens.clear();
+		while (getline(iss, token, '\t'))
+			tokens.push_back(token);
+
+		if (tokens[0] != "" && stoi(tokens[0]) == id)
+		{
+			auto it = std::find(lines.begin(), lines.end(), l);
+
+			if (it == lines.end())
+			{
+				cout << endl << "не найдена запись для удаления" << endl;
+				return false;
+			}
+			else
+			{
+				int index = it - lines.begin();
+				return remove_line_from_index(path, index);
+			
+			}
+		}
+	}
+
+	return false;
+
+}
+
+bool ScientificConfModel::remove_line_from_index(string filename, size_t index)
+{
+	 vector< string> vec;
+	 ifstream file(filename);
+	if (file.is_open())
+	{
+		 string str;
+		while ( getline(file, str))
+			vec.push_back(str);
+		file.close();
+		if (vec.size() < index)
+			return false;
+		vec.erase(vec.begin() + index);
+		 ofstream outfile(filename);
+		if (outfile.is_open())
+		{
+			 copy(vec.begin(), vec.end(),
+				 ostream_iterator< string>(outfile, "\n"));
+			outfile.close();
+			return true;
+		}
+		return false;
+	}
+	return false;
+}
+/// <summary>
+/// Костыльный способ получить последнюю строку файла
+/// </summary>
+string ScientificConfModel::last_line(string path)
+{
+	ifstream inClientFile(path, ios::in);
+
+	if (!inClientFile)
+	{
+		
+	}
+
+	string buf;
+	string result;
+		while (getline(inClientFile, buf))
+		{
+			if (buf != "")
+				result = buf;
+		}
+		return result;
 }
 
 

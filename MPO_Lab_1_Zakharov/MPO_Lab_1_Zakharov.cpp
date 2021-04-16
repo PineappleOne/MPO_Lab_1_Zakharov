@@ -93,7 +93,7 @@ void AddDataToBD(ScientificConfModel h)
 	{
 		string constructor = "\t" + name + "\t" + theme + "\t" + bufferDate;
 		
-		if (h.SaveData(constructor))
+		if (h.SaveData(constructor,PathData))
 		{
 			cout << "Сохранено в файл! \n";
 			return;
@@ -123,7 +123,8 @@ int main()
     bool flagMenu = true;
     Helper helper;
     ScientificConfModel scientificConfModel;
-	
+	int id = -1;
+
 	LogingStart(scientificConfModel);
 	cout << "База данных научных конференций !\n";
 	do
@@ -133,10 +134,12 @@ int main()
 		cout << "1. Записать в базу новую научную конференцию" << endl;
 		cout << "2. Вывести все  конференции" << endl;
 		cout << "3. Вывести ближайшие даты научных конференции" << endl;
+		cout << "4. Удалить конференцию по ID" << endl;
+		cout << "5. Удалить все записи" << endl;
 		cout << "--------------------" << endl;
-		cout << "4. Выход" << endl;
+		cout << "6. Выход" << endl;
 
-		int variant = helper.get_variant(4);
+		int variant = helper.get_variant(6);
 
 		switch (variant)
 		{
@@ -146,13 +149,31 @@ int main()
 
 			break;
 		case 2:
+			system("cls");
 			scientificConfModel.showAllConf(PathData);
 			break;
 		case 3:
+			system("cls");
 			scientificConfModel.showAllConfWeek(PathData);
 			break;
-
 		case 4:
+			system("cls");
+			scientificConfModel.showAllConf(PathData);
+			
+			cout << endl << "Введите ID конференции для удаления" << endl;
+			cin >> id;
+			if (id != -1)
+			{
+				if (scientificConfModel.remove_line(PathData, id))
+					cout << endl << "Запись успешно удалена";
+			}
+			break;
+		case 5:
+			system("cls");
+			scientificConfModel.clear(PathData);
+			cout << "Файл очищен";
+			break;
+		case 6:
 			exit(0);
 			break;
 		}
