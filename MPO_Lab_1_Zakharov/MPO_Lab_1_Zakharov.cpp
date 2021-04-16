@@ -92,10 +92,10 @@ void AddDataToBD(ScientificConfModel h)
 		(minutes >= 0 && minutes <= 60))
 	{
 		string constructor = "\t" + name + "\t" + theme + "\t" + bufferDate;
-		
+		system("cls");
 		if (h.SaveData(constructor,PathData))
 		{
-			cout << "Сохранено в файл! \n";
+			cout << "Конференция "<< name << " успешно добавлена" << endl;
 			return;
 		}
 		else

@@ -62,6 +62,11 @@ inline void ScientificConfModel::showAllConf(string path)
 
 		cout <<endl<< "******************" << endl;
 	}
+
+	if (tokens.empty())
+	{
+		cout << "Нет записей научных конференций" << endl;
+	}
 }
 
 /// <summary>
